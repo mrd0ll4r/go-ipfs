@@ -231,12 +231,12 @@ func TestMakeKeystoreNoDir(t *testing.T) {
 }
 
 func assertGetKey(ks Keystore, name string, exp ci.PrivKey) error {
-	out_k, err := ks.Get(name)
+	outK, err := ks.Get(name)
 	if err != nil {
 		return err
 	}
 
-	if !out_k.Equals(exp) {
+	if !outK.Equals(exp) {
 		return fmt.Errorf("key we got out didnt match expectation")
 	}
 

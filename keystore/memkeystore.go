@@ -8,6 +8,7 @@ type MemKeystore struct {
 	keys map[string]ci.PrivKey
 }
 
+// NewMemKeystore creates a MemKeystore.
 func NewMemKeystore() *MemKeystore {
 	return &MemKeystore{make(map[string]ci.PrivKey)}
 }

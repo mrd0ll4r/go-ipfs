@@ -30,7 +30,10 @@ type Keystore interface {
 	List() ([]string, error)
 }
 
+// ErrNoSuchKey is an error message returned when no key of a given name was found.
 var ErrNoSuchKey = fmt.Errorf("no key by the given name was found")
+
+// ErrKeyExists is an error message returned when a key already exists
 var ErrKeyExists = fmt.Errorf("key by that name already exists, refusing to overwrite")
 
 // FSKeystore is a keystore backed by files in a given directory stored on disk.
@@ -54,12 +57,13 @@ func validateName(name string) error {
 	return nil
 }
 
-// NewKeystore is a factory for getting instance of Keystore interface implementation
+// NewKeystore returns a Keystore using the default implementation.
 func NewKeystore(dir string) (Keystore, error) {
 	return NewEncodedFSKeystore(dir)
 }
 
-// NewEncodedFSKeystore is a factory for getting instance of EncodedFSKeystore
+// NewEncodedFSKeystore is returns a filesystem-backed keystore which encodes
+// key names using base32.
 func NewEncodedFSKeystore(dir string) (*EncodedFSKeystore, error) {
 	keystore, err := NewFSKeystore(dir)
 
@@ -70,6 +74,7 @@ func NewEncodedFSKeystore(dir string) (*EncodedFSKeystore, error) {
 	return &EncodedFSKeystore{keystore}, nil
 }
 
+// NewFSKeystore returns a new filesystem-backed keystore.
 func NewFSKeystore(dir string) (*FSKeystore, error) {
 	_, err := os.Stat(dir)
 	if err != nil {
@@ -291,7 +296,7 @@ func (ks *EncodedFSKeystore) List() ([]string, error) {
 		if err == nil {
 			list = append(list, decodedName)
 		} else {
-			log.Warningf("Ignoring keyfile with invalid encoded filename: %s", name)
+			log.Warnf("Ignoring keyfile with invalid encoded filename: %s", name)
 		}
 	}
 
