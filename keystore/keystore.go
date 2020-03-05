@@ -7,9 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	base32 "encoding/base32"
+
 	logging "github.com/ipfs/go-log"
 	ci "github.com/libp2p/go-libp2p-core/crypto"
-	base32 "github.com/whyrusleeping/base32"
 )
 
 var log = logging.Logger("keystore")
@@ -199,7 +200,8 @@ func encode(name string) (string, error) {
 		return "", fmt.Errorf("key name must be at least one character")
 	}
 
-	encodedName := base32.RawStdEncoding.EncodeToString([]byte(name))
+	encoder := base32.StdEncoding.WithPadding(base32.NoPadding)
+	encodedName := encoder.EncodeToString([]byte(name))
 	log.Debugf("Encoded key name: %s to: %s", name, encodedName)
 
 	return keyFilenamePrefix + strings.ToLower(encodedName), nil
@@ -211,7 +213,8 @@ func decode(name string) (string, error) {
 	}
 
 	nameWithoutPrefix := strings.ToUpper(name[len(keyFilenamePrefix):])
-	data, err := base32.RawStdEncoding.DecodeString(nameWithoutPrefix)
+	decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
+	data, err := decoder.DecodeString(nameWithoutPrefix)
 
 	if err != nil {
 		return "", err
