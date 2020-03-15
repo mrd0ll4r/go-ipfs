@@ -36,42 +36,16 @@ var ErrNoSuchKey = fmt.Errorf("no key by the given name was found")
 // ErrKeyExists is an error message returned when a key already exists
 var ErrKeyExists = fmt.Errorf("key by that name already exists, refusing to overwrite")
 
+const keyFilenamePrefix = "key_"
+
 // FSKeystore is a keystore backed by files in a given directory stored on disk.
 type FSKeystore struct {
 	dir string
 }
 
-func validateName(name string) error {
-	if name == "" {
-		return fmt.Errorf("key names must be at least one character")
-	}
-
-	if strings.Contains(name, "/") {
-		return fmt.Errorf("key names may not contain slashes")
-	}
-
-	if strings.HasPrefix(name, ".") {
-		return fmt.Errorf("key names may not begin with a period")
-	}
-
-	return nil
-}
-
 // NewKeystore returns a Keystore using the default implementation.
 func NewKeystore(dir string) (Keystore, error) {
-	return NewEncodedFSKeystore(dir)
-}
-
-// NewEncodedFSKeystore is returns a filesystem-backed keystore which encodes
-// key names using base32.
-func NewEncodedFSKeystore(dir string) (*EncodedFSKeystore, error) {
-	keystore, err := NewFSKeystore(dir)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &EncodedFSKeystore{keystore}, nil
+	return NewFSKeystore(dir)
 }
 
 // NewFSKeystore returns a new filesystem-backed keystore.
@@ -91,28 +65,25 @@ func NewFSKeystore(dir string) (*FSKeystore, error) {
 
 // Has returns whether or not a key exist in the Keystore
 func (ks *FSKeystore) Has(name string) (bool, error) {
-	kp := filepath.Join(ks.dir, name)
-
-	_, err := os.Stat(kp)
-
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
+	name, err := encode(name)
 	if err != nil {
 		return false, err
 	}
 
-	if err := validateName(name); err != nil {
-		return false, err
-	}
+	kp := filepath.Join(ks.dir, name)
 
-	return true, nil
+	_, err = os.Stat(kp)
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 // Put stores a key in the Keystore, if a key with the same name already exists, returns ErrKeyExists
 func (ks *FSKeystore) Put(name string, k ci.PrivKey) error {
-	if err := validateName(name); err != nil {
+	name, err := encode(name)
+	if err != nil {
 		return err
 	}
 
@@ -144,7 +115,8 @@ func (ks *FSKeystore) Put(name string, k ci.PrivKey) error {
 // Get retrieves a key from the Keystore if it exists, and returns ErrNoSuchKey
 // otherwise.
 func (ks *FSKeystore) Get(name string) (ci.PrivKey, error) {
-	if err := validateName(name); err != nil {
+	name, err := encode(name)
+	if err != nil {
 		return nil, err
 	}
 
@@ -163,7 +135,8 @@ func (ks *FSKeystore) Get(name string) (ci.PrivKey, error) {
 
 // Delete removes a key from the Keystore
 func (ks *FSKeystore) Delete(name string) error {
-	if err := validateName(name); err != nil {
+	name, err := encode(name)
+	if err != nil {
 		return err
 	}
 
@@ -187,9 +160,9 @@ func (ks *FSKeystore) List() ([]string, error) {
 	list := make([]string, 0, len(dirs))
 
 	for _, name := range dirs {
-		err := validateName(name)
+		decodedName, err := decode(name)
 		if err == nil {
-			list = append(list, name)
+			list = append(list, decodedName)
 		} else {
 			log.Warnf("Ignoring the invalid keyfile: %s", name)
 		}
@@ -197,8 +170,6 @@ func (ks *FSKeystore) List() ([]string, error) {
 
 	return list, nil
 }
-
-const keyFilenamePrefix = "key_"
 
 func encode(name string) (string, error) {
 	if name == "" {
@@ -230,75 +201,4 @@ func decode(name string) (string, error) {
 	log.Debugf("Decoded key name: %s to: %s", name, decodedName)
 
 	return decodedName, nil
-}
-
-// EncodedFSKeystore is extension of FSKeystore that encodes the key filenames in base32
-type EncodedFSKeystore struct {
-	*FSKeystore
-}
-
-// Has indicates if key is in keystore
-func (ks *EncodedFSKeystore) Has(name string) (bool, error) {
-	encodedName, err := encode(name)
-
-	if err != nil {
-		return false, err
-	}
-
-	return ks.FSKeystore.Has(encodedName)
-}
-
-// Put places key into the keystore
-func (ks *EncodedFSKeystore) Put(name string, k ci.PrivKey) error {
-	encodedName, err := encode(name)
-
-	if err != nil {
-		return err
-	}
-
-	return ks.FSKeystore.Put(encodedName, k)
-}
-
-// Get retrieves key by its name from the keystore
-func (ks *EncodedFSKeystore) Get(name string) (ci.PrivKey, error) {
-	encodedName, err := encode(name)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return ks.FSKeystore.Get(encodedName)
-}
-
-// Delete removes key from the keystore
-func (ks *EncodedFSKeystore) Delete(name string) error {
-	encodedName, err := encode(name)
-
-	if err != nil {
-		return err
-	}
-
-	return ks.FSKeystore.Delete(encodedName)
-}
-
-// List returns list of all keys in keystore
-func (ks *EncodedFSKeystore) List() ([]string, error) {
-	dirs, err := ks.FSKeystore.List()
-
-	if err != nil {
-		return nil, err
-	}
-
-	list := make([]string, 0, len(dirs))
-
-	for _, name := range dirs {
-		decodedName, err := decode(name)
-		if err == nil {
-			list = append(list, decodedName)
-		} else {
-			log.Warnf("Ignoring keyfile with invalid encoded filename: %s", name)
-		}
-	}
-
-	return list, nil
 }
