@@ -385,7 +385,7 @@ func (r *FSRepo) openConfig() error {
 
 func (r *FSRepo) openKeystore() error {
 	ksp := filepath.Join(r.path, "keystore")
-	ks, err := keystore.NewKeystore(ksp)
+	ks, err := keystore.NewFSKeystore(ksp)
 	if err != nil {
 		return err
 	}
