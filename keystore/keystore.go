@@ -45,6 +45,11 @@ type FSKeystore struct {
 	dir string
 }
 
+// NewKeystore returns a Keystore using the default implementation.
+func NewKeystore(dir string) (Keystore, error) {
+	return NewFSKeystore(dir)
+}
+
 // NewFSKeystore returns a new filesystem-backed keystore.
 func NewFSKeystore(dir string) (*FSKeystore, error) {
 	_, err := os.Stat(dir)
