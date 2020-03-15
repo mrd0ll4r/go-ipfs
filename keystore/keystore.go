@@ -15,6 +15,8 @@ import (
 
 var log = logging.Logger("keystore")
 
+var codec = base32.StdEncoding.WithPadding(base32.NoPadding)
+
 // Keystore provides a key management interface
 type Keystore interface {
 	// Has returns whether or not a key exist in the Keystore
@@ -164,7 +166,7 @@ func (ks *FSKeystore) List() ([]string, error) {
 		if err == nil {
 			list = append(list, decodedName)
 		} else {
-			log.Warnf("Ignoring the invalid keyfile: %s", name)
+			log.Errorf("Ignoring keyfile with invalid encoded filename: %s", name)
 		}
 	}
 
@@ -176,8 +178,7 @@ func encode(name string) (string, error) {
 		return "", fmt.Errorf("key name must be at least one character")
 	}
 
-	encoder := base32.StdEncoding.WithPadding(base32.NoPadding)
-	encodedName := encoder.EncodeToString([]byte(name))
+	encodedName := codec.EncodeToString([]byte(name))
 	log.Debugf("Encoded key name: %s to: %s", name, encodedName)
 
 	return keyFilenamePrefix + strings.ToLower(encodedName), nil
@@ -189,16 +190,12 @@ func decode(name string) (string, error) {
 	}
 
 	nameWithoutPrefix := strings.ToUpper(name[len(keyFilenamePrefix):])
-	decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
-	data, err := decoder.DecodeString(nameWithoutPrefix)
-
+	decodedName, err := codec.DecodeString(nameWithoutPrefix)
 	if err != nil {
 		return "", err
 	}
 
-	decodedName := string(data[:])
-
 	log.Debugf("Decoded key name: %s to: %s", name, decodedName)
 
-	return decodedName, nil
+	return string(decodedName), nil
 }
