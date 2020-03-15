@@ -1,6 +1,10 @@
 package keystore
 
-import ci "github.com/libp2p/go-libp2p-core/crypto"
+import (
+	"errors"
+
+	ci "github.com/libp2p/go-libp2p-core/crypto"
+)
 
 // MemKeystore is an in memory keystore implementation that is not persisted to
 // any backing storage.
@@ -21,6 +25,10 @@ func (mk *MemKeystore) Has(name string) (bool, error) {
 
 // Put store a key in the Keystore
 func (mk *MemKeystore) Put(name string, k ci.PrivKey) error {
+	if name == "" {
+		return errors.New("key name must be at least one character")
+	}
+
 	_, ok := mk.keys[name]
 	if ok {
 		return ErrKeyExists
