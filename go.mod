@@ -14,7 +14,7 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/ipfs/go-bitswap v0.2.2
+	github.com/ipfs/go-bitswap v0.2.3
 	github.com/ipfs/go-block-format v0.0.2
 	github.com/ipfs/go-blockservice v0.1.2
 	github.com/ipfs/go-cid v0.0.5
@@ -80,7 +80,7 @@ require (
 	github.com/libp2p/go-libp2p-swarm v0.2.2
 	github.com/libp2p/go-libp2p-testing v0.1.1
 	github.com/libp2p/go-libp2p-tls v0.1.3
-	github.com/libp2p/go-libp2p-yamux v0.2.3
+	github.com/libp2p/go-libp2p-yamux v0.2.4
 	github.com/libp2p/go-maddr-filter v0.0.5
 	github.com/libp2p/go-socket-activation v0.0.2
 	github.com/mattn/go-runewidth v0.0.8 // indirect
@@ -93,7 +93,7 @@ require (
 	github.com/multiformats/go-multihash v0.0.13
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.5.0
+	github.com/prometheus/client_golang v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/whyrusleeping/base32 v0.0.0-20170828182744-c30ac30633cc
 	github.com/whyrusleeping/go-sysinfo v0.0.0-20190219211824-4a357d4b90b1
