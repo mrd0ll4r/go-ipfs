@@ -2,7 +2,6 @@ package coremock
 
 import (
 	"context"
-	"fmt"
 
 	libp2p2 "github.com/ipfs/go-ipfs/core/node/libp2p"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/ipfs/go-datastore"
 	syncds "github.com/ipfs/go-datastore/sync"
 	config "github.com/ipfs/go-ipfs-config"
-	ma "github.com/multiformats/go-multiaddr"
 
 	"github.com/libp2p/go-libp2p"
 	host "github.com/libp2p/go-libp2p-core/host"
@@ -37,20 +35,7 @@ func NewMockNode() (*core.IpfsNode, error) {
 
 func MockHostOption(mn mocknet.Mocknet) libp2p2.HostOption {
 	return func(ctx context.Context, id peer.ID, ps pstore.Peerstore, _ ...libp2p.Option) (host.Host, error) {
-		host, err := mn.AddPeerWithPeerstore(id, ps)
-		if err != nil {
-			return nil, err
-		}
-		// Pretend to listen on a real network address
-		// Otherwise, our fancy new DHT won't actually _form_ because
-		// none of the nodes will be publicly dialable.
-		port := id[len(id)-4]
-		ipB := id[len(id)-3]
-		ipC := id[len(id)-2]
-		ipD := id[len(id)-1]
-		return host, host.Network().Listen(ma.StringCast(fmt.Sprintf(
-			"/ip4/18.%d.%d.%d/tcp/%d", port, ipB, ipC, ipD,
-		)))
+		return mn.AddPeerWithPeerstore(id, ps)
 	}
 }
 
