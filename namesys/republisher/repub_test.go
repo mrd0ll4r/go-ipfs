@@ -21,7 +21,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-func fakePublicAddr(h libp2p.Host) {
+func fakePublicAddr(t *testing.T, h libp2p.Host) {
 	id := h.ID()
 	// Pretend to listen on a real network address
 	// Otherwise, our fancy new DHT won't actually _form_ because
@@ -30,9 +30,12 @@ func fakePublicAddr(h libp2p.Host) {
 	ipB := id[len(id)-3]
 	ipC := id[len(id)-2]
 	ipD := id[len(id)-1]
-	h.Network().Listen(ma.StringCast(fmt.Sprintf(
+	err := h.Network().Listen(ma.StringCast(fmt.Sprintf(
 		"/ip4/18.%d.%d.%d/tcp/%d", port, ipB, ipC, ipD,
 	)))
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRepublish(t *testing.T) {
@@ -53,7 +56,7 @@ func TestRepublish(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fakePublicAddr(nd.PeerHost)
+		fakePublicAddr(t, nd.PeerHost)
 
 		nd.Namesys = namesys.NewNameSystem(nd.Routing, nd.Repo.Datastore(), 0)
 
