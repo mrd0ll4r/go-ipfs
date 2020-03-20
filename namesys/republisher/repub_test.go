@@ -3,6 +3,7 @@ package republisher_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,9 +15,25 @@ import (
 	path "github.com/ipfs/go-path"
 
 	goprocess "github.com/jbenet/goprocess"
+	libp2p "github.com/libp2p/go-libp2p-core"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
+	ma "github.com/multiformats/go-multiaddr"
 )
+
+func fakePublicAddr(h libp2p.Host) {
+	id := h.ID()
+	// Pretend to listen on a real network address
+	// Otherwise, our fancy new DHT won't actually _form_ because
+	// none of the nodes will be publicly dialable.
+	port := id[len(id)-4]
+	ipB := id[len(id)-3]
+	ipC := id[len(id)-2]
+	ipD := id[len(id)-1]
+	h.Network().Listen(ma.StringCast(fmt.Sprintf(
+		"/ip4/18.%d.%d.%d/tcp/%d", port, ipB, ipC, ipD,
+	)))
+}
 
 func TestRepublish(t *testing.T) {
 	// set cache life to zero for testing low-period repubs
@@ -36,6 +53,7 @@ func TestRepublish(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		fakePublicAddr(nd.PeerHost)
 
 		nd.Namesys = namesys.NewNameSystem(nd.Routing, nd.Repo.Datastore(), 0)
 
