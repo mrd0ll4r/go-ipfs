@@ -24,7 +24,7 @@ var (
 const minFds = 2048
 
 // default max file descriptor limit.
-const maxFds = 8192
+const maxFds = 100_000
 
 // userMaxFDs returns the value of IPFS_FD_MAX
 func userMaxFDs() uint64 {
