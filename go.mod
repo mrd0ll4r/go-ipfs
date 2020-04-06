@@ -107,4 +107,6 @@ require (
 	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744
 )
 
+replace github.com/ipfs/go-bitswap => ../go-bitswap
+
 go 1.15
